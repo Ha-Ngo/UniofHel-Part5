@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { AddBlog } from "./components/AddBlog";
 import Blog from "./components/Blog";
+import { Togglable } from "./components/Togglable";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 
@@ -9,10 +11,9 @@ const App = () => {
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [url, setUrl] = useState("");
-  const [message, setMessage] = useState(null)
+  const [message, setMessage] = useState(null);
+
+  const blogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
@@ -23,7 +24,7 @@ const App = () => {
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON);
       setUser(user);
-      blogService.setToken(user.token)
+      blogService.setToken(user.token);
     }
   }, []);
 
@@ -50,22 +51,16 @@ const App = () => {
     setUser(null);
   };
 
-  const addBlog = (event) => {
-    event.preventDefault();
-    const blogObject = {
-      title: title,
-      author: author,
-      url: url,
-    };
+  const addBlog = (blogObject) => {
+    blogFormRef.current.toggleVisibility()
     blogService.create(blogObject).then((returnedBlog) => {
       setBlogs(blogs.concat(returnedBlog));
-      setTitle("");
-      setAuthor("");
-      setUrl("");
-      setMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`);
+      setMessage(
+        `a new blog ${returnedBlog.title} by ${returnedBlog.author} added`
+      );
       setTimeout(() => {
-        setMessage(null)
-      }, 5000)
+        setMessage(null);
+      }, 5000);
     });
   };
 
@@ -73,7 +68,7 @@ const App = () => {
     return (
       <div>
         <h2>log in to application</h2>
-        {errorMessage !== null && <h3 className='error'>{errorMessage}</h3>}
+        {errorMessage !== null && <h3 className="error">{errorMessage}</h3>}
         <form onSubmit={handleLogin}>
           <div>
             username{" "}
@@ -100,40 +95,13 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      {message !==null && <h3 className='message'>{message}</h3>}
+      {message !== null && <h3 className="message">{message}</h3>}
       <p>
         {user.name} logged in <button onClick={handleLogout}>logout</button>
       </p>
-
-      <h2>create new</h2>
-      <form onSubmit={addBlog}>
-        <div>
-          title{" "}
-          <input
-            type="text"
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
-          ></input>
-        </div>
-        <div>
-          author{" "}
-          <input
-            type="text"
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
-          ></input>
-        </div>
-        <div>
-          url{" "}
-          <input
-            type="text"
-            value={url}
-            onChange={({ target }) => setUrl(target.value)}
-          ></input>
-        </div>
-        <button type="submit">create</button>
-      </form>
-
+      <Togglable buttonLabel="new note" ref={blogFormRef}>
+        <AddBlog createBlog={addBlog} />
+      </Togglable>
       {blogs.map((blog) => (
         <Blog key={blog.id} blog={blog} />
       ))}
