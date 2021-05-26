@@ -12,6 +12,7 @@ const App = () => {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
@@ -36,7 +37,7 @@ const App = () => {
       setUsername("");
       setPassword("");
     } catch (exception) {
-      setErrorMessage("Wrong credentials");
+      setErrorMessage("Wrong username or password");
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
@@ -61,6 +62,10 @@ const App = () => {
       setTitle("");
       setAuthor("");
       setUrl("");
+      setMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`);
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
     });
   };
 
@@ -68,6 +73,7 @@ const App = () => {
     return (
       <div>
         <h2>log in to application</h2>
+        {errorMessage !== null && <h3 className='error'>{errorMessage}</h3>}
         <form onSubmit={handleLogin}>
           <div>
             username{" "}
@@ -94,6 +100,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
+      {message !==null && <h3 className='message'>{message}</h3>}
       <p>
         {user.name} logged in <button onClick={handleLogout}>logout</button>
       </p>
